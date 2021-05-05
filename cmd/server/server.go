@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/roman-mazur/design-practice-2-template/httptools"
-	"github.com/roman-mazur/design-practice-2-template/signal"
+	"github.com/EugeniaKol/design-practice-2/httptools"
+	"github.com/EugeniaKol/design-practice-2/signal"
 )
 
 var port = flag.Int("port", 8080, "server port")
@@ -53,4 +53,5 @@ func main() {
 	server := httptools.CreateServer(*port, h)
 	server.Start()
 	signal.WaitForTerminationSignal()
+
 }
