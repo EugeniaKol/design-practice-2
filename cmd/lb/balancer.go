@@ -103,7 +103,7 @@ func forward(s server, rw http.ResponseWriter, r *http.Request) error {
 	}
 }
 
-func min(ss []server, compare func(server, server) bool) (best int) {
+func min(ss []server, compare func(server, server) bool) (best int,) {
 	best = 0
 	for i, s := range ss {
 		if compare(s, ss[best]) && up[i] {
