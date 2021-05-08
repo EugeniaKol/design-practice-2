@@ -6,14 +6,8 @@ import (
 	"testing"
 	"time"
 
-	. "gopkg.in/check.v1"
+	"github.com/stretchr/testify/require"
 )
-
-func TestBalancer(t *testing.T) { TestingT(t) }
-
-type IntegrationTest struct{}
-
-var _ = Suite(&IntegrationTest{})
 
 const baseAddress = "http://balancer:8090"
 
@@ -21,34 +15,37 @@ var client = http.Client{
 	Timeout: 3 * time.Second,
 }
 
-func (s *IntegrationTest) TestBalancer(c *C) {
-	// TODO: Реалізуйте інтеграційний тест для балансувальникка.
-	serverPool := []string{
-		"server1:8080",
-		"server2:8080",
-		"server3:8080",
-	}
-	authors := make(chan string, 10)
+func TestBalancer(t *testing.T) {
+	var server string
 	for i := 0; i < 10; i++ {
-		go func() {
-			resp, err := client.Get(fmt.Sprintf("%s/api/v1/some-data", baseAddress))
-			if err != nil {
-				c.Error(err)
-			}
-			respServer := resp.Header.Get("Lb-from")
-			authors <- respServer
-		}()
-		time.Sleep(time.Duration(20) * time.Millisecond)
-	}
-	for i := 0; i < 10; i++ {
-		auth := <-authors
-		c.Assert(auth, Equals, serverPool[i%3])
+		url := fmt.Sprintf("%s/api/v1/some-data", baseAddress)
+		t.Log(fmt.Sprintf("Sending request to %s", url))
+		resp, err := client.Get(url)
+		if err != nil {
+			t.Error(err)
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			t.Error(fmt.Sprintf("Response code: %d", resp.StatusCode))
+		}
+
+		t.Logf("response from [%s]", resp.Header.Get("lb-from"))
+		if i == 0 {
+			server = resp.Header.Get("lb-from")
+		} else {
+			require.Equal(t, server, resp.Header.Get("lb-from"))
+		}
 	}
 }
 
-func (s *IntegrationTest) BenchmarkBalancer(c *C) {
-	for i := 0; i < c.N; i++ {
-		client.Get(fmt.Sprintf("%s/api/v1/some-data", baseAddress))
+func BenchmarkBalancer(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		resp, err := client.Get(fmt.Sprintf("%s/api/v1/some-data", baseAddress))
+		if err != nil {
+			b.Error(err)
+		}
+		if resp.StatusCode != http.StatusOK {
+			b.Error(fmt.Sprintf("Response code: %d", resp.StatusCode))
+		}
 	}
-	// TODO: Реалізуйте інтеграційний бенчмарк для балансувальникка.
 }
