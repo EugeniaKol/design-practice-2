@@ -42,7 +42,7 @@ var (
 			trafficCnt: 0,
 		},
 	}
-	up []bool
+	up [len(serversPool)]bool
 )
 
 func scheme() string {
