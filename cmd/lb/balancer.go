@@ -42,7 +42,7 @@ var (
 			trafficCnt: 0,
 		},
 	}
-	up [len(serversPool)]bool
+	up := make([] bool, len(serversPool))
 )
 
 func scheme() string {
