@@ -25,7 +25,7 @@ tested_binary {
 
 // TODO: Додайте модуль для інтеграційних тестів.
 tested_binary {
-    name: "integration-tests",
+    name: "integration",
     pkg: "github.com/EugeniaKol/design-practice-2/integration",
     srcs: [
         "httptools/**/*.go",
