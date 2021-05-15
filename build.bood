@@ -26,7 +26,7 @@ tested_binary {
 // TODO: Додайте модуль для інтеграційних тестів.
 tested_binary {
     name: "integration",
-    pkg: "github.com/EugeniaKol/design-practice-2/integrationcmd/client",
+    pkg: "github.com/EugeniaKol/design-practice-2/cmd/client",
     srcs: ["cmd/client/*.go"],
     testPkg: "./integration",
     testSrcs: ["integration/*_test.go"]
