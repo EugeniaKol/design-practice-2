@@ -26,14 +26,8 @@ tested_binary {
 // TODO: Додайте модуль для інтеграційних тестів.
 tested_binary {
     name: "integration",
-    pkg: "github.com/EugeniaKol/design-practice-2/integration",
-    srcs: [
-        "httptools/**/*.go",
-        "signal/**/*.go",
-        "cmd/lb/*.go",
-        "cmd/server/*.go"
-    ],
+    pkg: "github.com/EugeniaKol/design-practice-2/integrationcmd/client",
+    srcs: ["cmd/client/*.go"],
     testPkg: "./integration",
-    srcsExclude: ["**/*_test.go"],
     testSrcs: ["integration/*_test.go"]
 }
