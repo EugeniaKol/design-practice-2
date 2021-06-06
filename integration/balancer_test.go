@@ -1,51 +1,71 @@
 package integration
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
+	gocheck "gopkg.in/check.v1"
 )
 
-const baseAddress = "http://localhost:8090"
+const baseAddress = "http://balancer:8090"
 
 var client = http.Client{
 	Timeout: 3 * time.Second,
 }
 
-func TestBalancer(t *testing.T) {
-	var server string
-	for i := 0; i < 10; i++ {
-		url := fmt.Sprintf("%s/api/v1/some-data", baseAddress)
-		t.Log(fmt.Sprintf("Sending request to %s", url))
-		resp, err := client.Get(url)
-		if err != nil {
-			t.Error(err)
-		}
+func Test(t *testing.T) { gocheck.TestingT(t) }
 
-		if resp.StatusCode != http.StatusOK {
-			t.Error(fmt.Sprintf("Response code: %d", resp.StatusCode))
-		}
+type MySuite struct{}
 
-		t.Logf("response from [%s]", resp.Header.Get("lb-from"))
-		if i == 0 {
-			server = resp.Header.Get("lb-from")
-		} else {
-			require.Equal(t, server, resp.Header.Get("lb-from"))
-		}
+var _ = gocheck.Suite(&MySuite{})
+
+func (s *MySuite) TestBalancer(c *gocheck.C) {
+	res1, err := client.Get(fmt.Sprintf("%s/api/v1/some-data/?key=topdevo4ki", baseAddress))
+	if err != nil {
+		c.Error(err)
 	}
+	c.Assert(res1.StatusCode, gocheck.Equals, http.StatusOK)
+
+	res2, err := client.Get(fmt.Sprintf("%s/api/v1/some-data/?key=topdevo4ki", baseAddress))
+	if err != nil {
+		c.Error(err)
+	}
+	c.Assert(res2.StatusCode, gocheck.Equals, http.StatusOK)
+
+	c.Assert(res1.Header.Get("lb-from"), gocheck.Equals, res2.Header.Get("lb-from"))
+
+	type getStringRes struct {
+		Key   string `json:"key"`
+		Value string `json:"value"`
+	}
+
+	var data1, data2 getStringRes
+	err = json.NewDecoder(res1.Body).Decode(&data1)
+	if err != nil {
+		c.Error(err)
+	}
+	err = json.NewDecoder(res2.Body).Decode(&data2)
+	if err != nil {
+		c.Error(err)
+	}
+	if data1.Value == "" {
+		c.Error("Empty value")
+	}
+	if data1.Value != data2.Value {
+		c.Error("Bad values")
+	}
+
 }
 
-func BenchmarkBalancer(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		resp, err := client.Get(fmt.Sprintf("%s/api/v1/some-data", baseAddress))
+func (s *MySuite) BenchmarkBalancer(c *gocheck.C) {
+	for i := 0; i < c.N; i++ {
+		res, err := client.Get(fmt.Sprintf("%s/api/v1/some-data", baseAddress))
 		if err != nil {
-			b.Error(err)
+			c.Error(err)
 		}
-		if resp.StatusCode != http.StatusOK {
-			b.Error(fmt.Sprintf("Response code: %d", resp.StatusCode))
-		}
+		c.Assert(res.StatusCode, gocheck.Equals, http.StatusOK)
 	}
 }
